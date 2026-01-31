@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Canvas</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Toolbar -->
+        <header class="toolbar">
+            <div class="toolbar-section toolbar-left">
+                <h1 class="logo">
+                    <span class="logo-icon">🎨</span>
+                    <span class="logo-text">CollabCanvas</span>
+                </h1>
+            </div>
+            
+            <div class="toolbar-section toolbar-center">
+                <!-- Drawing Tools -->
+                <div class="tool-group">
+                    <button class="tool-btn active" data-tool="brush" title="Brush (B)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                            <path d="M2 2l7.586 7.586"/>
+                            <circle cx="11" cy="11" r="2"/>
+                        </svg>
+                    </button>
+                    <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8L13.8 2.4c.8-.8 2-.8 2.8 0L21 6.8c.8.8.8 2 0 2.8L12 18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Color Picker -->
+                <div class="tool-group">
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="colorPicker" value="#000000" class="color-input">
+                        <div class="color-preview" id="colorPreview"></div>
+                    </div>
+                    <div class="preset-colors">
+                        <button class="color-btn active" data-color="#000000" style="background-color: #000000"></button>
+                        <button class="color-btn" data-color="#EF4444" style="background-color: #EF4444"></button>
+                        <button class="color-btn" data-color="#F97316" style="background-color: #F97316"></button>
+                        <button class="color-btn" data-color="#EAB308" style="background-color: #EAB308"></button>
+                        <button class="color-btn" data-color="#22C55E" style="background-color: #22C55E"></button>
+                        <button class="color-btn" data-color="#3B82F6" style="background-color: #3B82F6"></button>
+                        <button class="color-btn" data-color="#8B5CF6" style="background-color: #8B5CF6"></button>
+                        <button class="color-btn" data-color="#EC4899" style="background-color: #EC4899"></button>
+                    </div>
+                </div>
+                
+                <!-- Stroke Width -->
+                <div class="tool-group stroke-group">
+                    <label class="stroke-label">Size</label>
+                    <input type="range" id="strokeWidth" min="1" max="50" value="5" class="stroke-slider">
+                    <span class="stroke-value" id="strokeValue">5px</span>
+                </div>
+                
+                <!-- Undo/Redo -->
+                <div class="tool-group">
+                    <button class="tool-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 7v6h6"/>
+                            <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                        </svg>
+                    </button>
+                    <button class="tool-btn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 7v6h-6"/>
+                            <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Clear Canvas -->
+                <div class="tool-group">
+                    <button class="tool-btn danger" id="clearBtn" title="Clear Canvas">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section toolbar-right">
+                <!-- Connection Status -->
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Canvas Area -->
+        <main class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+            <!-- Ghost cursors will be rendered here -->
+            <div id="cursorContainer" class="cursor-container"></div>
+        </main>
+        
+        <!-- Users Panel -->
+        <aside class="users-panel" id="usersPanel">
+            <div class="panel-header">
+                <h2>Online Users</h2>
+                <span class="user-count" id="userCount">0</span>
+            </div>
+            <ul class="user-list" id="userList"></ul>
+        </aside>
+        
+        <!-- Room Info -->
+        <div class="room-info" id="roomInfo">
+            <span class="room-label">Room:</span>
+            <span class="room-id" id="roomId">default</span>
+            <button class="copy-btn" id="copyRoomBtn" title="Copy room link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+    
+    <!-- Socket.io client loaded from server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
